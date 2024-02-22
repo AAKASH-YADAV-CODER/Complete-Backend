@@ -6,6 +6,12 @@ dotenv.config({
   path: "./env",
 });
 
+// This is for checking
+// app.get("/Mynewpage", (req, res) => {
+//   res.send("This is Another page of my new page");
+//   res.status(200).json({ message: "Here we go🥱" });
+// });
+
 connectDB()
   .then(() => {
     app.listen(process.env.PORT || 5000, () => {
