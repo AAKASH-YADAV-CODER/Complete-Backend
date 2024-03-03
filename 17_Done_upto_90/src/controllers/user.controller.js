@@ -1,7 +1,10 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
-import { uploadOnCloudinary } from "../utils/uploadOnCloud.js";
+import {
+  uploadOnCloudinary,
+  deleteFromCloudinary,
+} from "../utils/uploadOnCloud.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -223,7 +226,7 @@ const updatePassword = asyncHandler(async (req, res) => {
   const passwordCorrect = await user.isPasswordCorrect(oldPassword);
 
   if (!passwordCorrect) {
-    throw new ApiError(400, "Password in Not Found!");
+    throw new ApiError(400, "Old Password in Not Correct!");
   }
   if (newPassword !== confirmPassword) {
     throw new ApiError(400, "Password inCorrect!");
@@ -267,8 +270,8 @@ const updateAccountInfo = asyncHandler(async (req, res) => {
         email,
       },
     },
-    { new: true }.select("-password")
-  );
+    { new: true }
+  ).select("-password");
 
   return res
     .status(200)
@@ -280,6 +283,26 @@ const updateCoverImage = asyncHandler(async (req, res) => {
   if (!coverImageLocalPath) {
     throw new ApiError(400, "Cover Image Not found");
   }
+
+  //TODO delete previous coverImage
+  const userForCoverImage = await User.findById(req.user?._id).select(
+    "coveImage"
+  );
+  if (userForCoverImage?.avatar) {
+    // Extract the public ID of the old image from the avatar URL
+    const publicId = extractPublicId(userForCoverImage.coverImage);
+
+    // Delete the old image from Cloudinary
+    await deleteFromCloudinary(publicId);
+  }
+  function extractPublicId(url) {
+    const parts = url.split("/");
+    console.log(parts);
+    const filename = parts.pop().split(".")[0];
+    console.log(filename);
+    return filename;
+  }
+
   const coverImage = await uploadOnCloudinary(coverImageLocalPath);
   if (!coverImage.url) {
     throw new ApiError("Image Not Found on Cloundinary");
@@ -306,6 +329,23 @@ const updateAvatar = asyncHandler(async (req, res) => {
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar Image Not found");
   }
+  //TODO :- delete old image
+
+  const userForAvatar = await User.findById(req.user?._id).select("avatar");
+  if (userForAvatar?.avatar) {
+    // Extract the public ID of the old image from the avatar URL
+    const publicId = extractPublicId(userForAvatar.avatar);
+
+    // Delete the old image from Cloudinary
+    await deleteFromCloudinary(publicId);
+  }
+  function extractPublicId(url) {
+    const parts = url.split("/");
+    const filename = parts.pop().split(".")[0];
+    return filename;
+  }
+
+  //Here we are uploading
   const avatar = await uploadOnCloudinary(avatarLocalPath);
   if (!avatar.url) {
     throw new ApiError("Avatar Not Found on Cloundinary");

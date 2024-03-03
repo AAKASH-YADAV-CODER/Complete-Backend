@@ -16,8 +16,3 @@ connectDB()
     console.error("Error in data response", err);
     process.exit(1);
   });
-/*
-IN post man create new collection and structure according to your choice , 
-also there is environment which provide direct access in collection files DRY
-its use to test at every stage of backend on API endpoints
-*/

@@ -34,9 +34,9 @@ router.route("/login").post(loginUser);
 
 //Secure Routes
 router.route("/logout").post(jwtVerify, logoutUser);
-router.route("/refresh-token").post(renewAccessToken);
 
 //These routes are possible when user is loggedIn so that's why verifyJWT
+router.route("/refresh-token").post(renewAccessToken);
 router.route("/current-user").get(jwtVerify, getCurrentUser);
 router.route("/update-password").post(jwtVerify, updatePassword);
 router.route("/update-account").post(jwtVerify, updateAccountInfo);
